@@ -8,9 +8,19 @@ datasource db {
 }
 
 model Project {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  name      String      @unique
+  prompt    String?
+  generations Generation[]
+}
+
+model Generation {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String
-  prompt    String?
+  prompt    String
+  code      String
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
 }
