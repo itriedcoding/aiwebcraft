@@ -1,0 +1,17 @@
+{
+  "name": "@acme/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": ["*"],
+  "scripts": {
+    "build": "echo nothing to build"
+  },
+  "dependencies": {
+    "eslint-config-next": "^15.0.0-canary.40",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.10"
+  }
+}
