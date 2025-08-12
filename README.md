@@ -2,6 +2,12 @@
 
 An open, developer-first alternative to v0.dev — agentic, code-quality driven, and production-ready.
 
+## Quick links
+
+- Studio: `http://localhost:3000/studio`
+- Health: `GET /api/health`
+- DB status: `GET /api/db` (requires Postgres running and `DATABASE_URL` configured)
+
 ## Why this exists
 
 - **Full control of code**: Everything is real, readable code in a modern monorepo
@@ -13,7 +19,7 @@ An open, developer-first alternative to v0.dev — agentic, code-quality driven,
 
 - **Studio**: Prompt-to-code flow at `/studio` that returns React TSX
 - **API-first**: `/api/generate` produces TSX from a prompt
-- **Shared packages**: `@acme/ai`, `@acme/codegen`, `@acme/agents`, `@acme/evals`, `@acme/ui`
+- **Shared packages**: `@acme/ai`, `@acme/codegen`, `@acme/agents`, `@acme/evals`, `@acme/ui`, `@acme/db`
 - **Infra**: Postgres (pgvector) + Redis via Docker
 - **Fallback dev**: Works without keys using a local placeholder generator
 
@@ -26,8 +32,9 @@ An open, developer-first alternative to v0.dev — agentic, code-quality driven,
   - `@acme/agents`: Multi-step workflows
   - `@acme/evals`: Quality metrics and scoring
   - `@acme/ui`: Reusable components
+  - `@acme/db`: Prisma schema + client wrapper
   - `@acme/config`: Shared config deps
-- Tooling: pnpm + Turbo + TypeScript + Tailwind
+- Tooling: pnpm + Turbo + TypeScript + Tailwind + Prisma
 
 ## Getting started
 
@@ -36,6 +43,8 @@ An open, developer-first alternative to v0.dev — agentic, code-quality driven,
 
 ```bash
 cp .env.example .env
+# or if your UI hides dotfiles
+cp env.example .env
 ```
 
 3) Start local infra (optional if you don’t need DB/Redis yet):
@@ -50,7 +59,13 @@ docker compose up -d
 pnpm install
 ```
 
-5) Run dev:
+5) Generate Prisma client (if DB used):
+
+```bash
+pnpm db:generate
+```
+
+6) Run dev:
 
 ```bash
 pnpm dev
@@ -60,7 +75,7 @@ Open `http://localhost:3000/studio` and try a prompt.
 
 ## Environment variables
 
-Key variables (see `.env.example` for full list):
+Key variables (see `.env.example` and `env.example` for full list):
 - **App**: `NEXT_PUBLIC_APP_URL`
 - **Auth**: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
 - **Database**: `DATABASE_URL`
@@ -74,17 +89,32 @@ Key variables (see `.env.example` for full list):
 
 This repo runs with no keys thanks to a local fallback for codegen. Add provider keys when you’re ready.
 
+## REST API
+
+- `POST /api/generate`
+  - Body: `{ "prompt": string, "temperature"?: number }`
+  - Response: `{ ok: boolean, code?: string, error?: string }`
+
+- `GET /api/health`
+  - Response: `{ ok: true, uptime: number }`
+
+- `GET /api/db`
+  - Response: `{ ok: boolean, projects?: number }`
+
+## Database
+
+- Edit schema: `packages/db/prisma/schema.prisma`
+- Generate client: `pnpm db:generate`
+- Create dev migration: `pnpm db:migrate`
+- Open Prisma Studio: `pnpm db:studio`
+
 ## Scripts
 
 - `pnpm dev` – run all apps in dev (Turbo)
 - `pnpm build` – build all apps/packages
 - `pnpm lint` – run linters
 - `pnpm typecheck` – TypeScript checks
-
-Per-package scripts (examples):
-- `apps/web`: `dev`, `build`, `start`
-- `packages/ui`: `build`, `dev` (tsup)
-- `packages/*`: `build`, `dev`
+- `pnpm db:*` – Prisma helpers
 
 ## Development workflow
 
@@ -95,7 +125,7 @@ Per-package scripts (examples):
 
 ## Roadmap (high-level)
 
-- Visual renderer to live-preview generated TSX
+- Visual renderer to live-preview and mount generated TSX in a sandbox
 - Figma ingestion: parse auto-layout and translate to components
 - Agentic loops: plan → generate → test/eval → refine
 - Project persistence with Postgres; job orchestration with Redis
