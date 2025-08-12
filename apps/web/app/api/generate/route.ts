@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { generateReactComponentFromPrompt } from '@acme/codegen/src';
+import { generateReactComponentFromPrompt } from '@acme/codegen';
 
 const BodySchema = z.object({ prompt: z.string().min(1), temperature: z.number().min(0).max(1).optional() });
 
