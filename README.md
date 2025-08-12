@@ -1,12 +1,12 @@
-# aiwebcraft
+# ACME V0x
 
-## Documentation
+An open, developer-first alternative to v0.dev — agentic, code-quality driven, and production-ready.
 
-- Generated API reference: `docs/API.md`
-- Regenerate docs:
+## Develop
 
-```bash
-python3 scripts/generate_docs.py
-```
+- Copy `.env.example` to `.env` and fill keys
+- Start services: `docker compose up -d`
+- Install deps: `pnpm install`
+- Dev: `pnpm dev`
 
-The generator scans for JS/TS, Python, Go, Rust, and Java sources and documents exported/public APIs with basic usage examples. If no source files exist yet, the generated file will note that nothing was detected.
+This monorepo uses pnpm + Turbo. Apps live in `apps/*`, shared packages in `packages/*`.
