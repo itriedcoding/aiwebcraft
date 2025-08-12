@@ -14,12 +14,25 @@ const config: NextConfig = {
     "@acme/codegen",
     "@acme/agents",
     "@acme/evals",
-    "@acme/db"
+    "@acme/db",
+    "@acme/logger",
+    "@acme/cache"
   ],
   poweredByHeader: false,
   typescript: {
     ignoreBuildErrors: false
-  }
+  },
+  headers: async () => [
+    {
+      source: "/(.*)",
+      headers: [
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
 };
 
 export default config;

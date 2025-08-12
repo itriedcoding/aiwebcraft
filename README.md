@@ -6,7 +6,7 @@ An open, developer-first alternative to v0.dev — agentic, code-quality driven,
 
 - Studio: `http://localhost:3000/studio`
 - Health: `GET /api/health`
-- DB status: `GET /api/db` (requires Postgres running and `DATABASE_URL` configured)
+- DB status: `GET /api/db`
 
 ## Why this exists
 
@@ -17,24 +17,26 @@ An open, developer-first alternative to v0.dev — agentic, code-quality driven,
 
 ## Features
 
-- **Studio**: Prompt-to-code flow at `/studio` that returns React TSX
+- **Studio**: Prompt-to-code flow at `/studio` that returns React TSX (no-key fallback included)
 - **API-first**: `/api/generate` produces TSX from a prompt
-- **Shared packages**: `@acme/ai`, `@acme/codegen`, `@acme/agents`, `@acme/evals`, `@acme/ui`, `@acme/db`
+- **Security**: Sensible headers, middleware-based rate limiting
+- **Observability**: `@acme/logger` (pino)
 - **Infra**: Postgres (pgvector) + Redis via Docker
-- **Fallback dev**: Works without keys using a local placeholder generator
+- **Packages**: `@acme/ai`, `@acme/codegen`, `@acme/agents`, `@acme/evals`, `@acme/ui`, `@acme/db`, `@acme/logger`, `@acme/cache`
 
-## Architecture
+## Architecture (high-level)
 
-- Apps: `apps/web` (Next.js App Router)
-- Packages: `packages/*`
-  - `@acme/ai`: AI provider clients + abstractions
-  - `@acme/codegen`: Prompt/design → code generation
-  - `@acme/agents`: Multi-step workflows
-  - `@acme/evals`: Quality metrics and scoring
-  - `@acme/ui`: Reusable components
-  - `@acme/db`: Prisma schema + client wrapper
-  - `@acme/config`: Shared config deps
-- Tooling: pnpm + Turbo + TypeScript + Tailwind + Prisma
+```
++------------------+      +-------------------+      +------------------+
+| apps/web (Next)  | ---> |  /api/* routes    | ---> |  packages/*      |
+|  UI + middleware |      |  generate/health  |      |  ai/evals/agents |
++------------------+      +-------------------+      |  codegen/ui/db   |
+        |                                                +--------------+
+        v                                                |  cache/log   |
++------------------+                                     +--------------+
+|  Browser / Studio|                                     Postgres/Redis
++------------------+
+```
 
 ## Getting started
 
@@ -47,98 +49,97 @@ cp .env.example .env
 cp env.example .env
 ```
 
-3) Start local infra (optional if you don’t need DB/Redis yet):
+3) Start local infra (optional):
 
 ```bash
 docker compose up -d
 ```
 
-4) Install dependencies:
+4) Install deps:
 
 ```bash
 pnpm install
 ```
 
-5) Generate Prisma client (if DB used):
+5) (DB) Generate Prisma client:
 
 ```bash
 pnpm db:generate
 ```
 
-6) Run dev:
+6) Dev:
 
 ```bash
 pnpm dev
 ```
 
-Open `http://localhost:3000/studio` and try a prompt.
+Open `http://localhost:3000/studio`.
 
 ## Environment variables
 
-Key variables (see `.env.example` and `env.example` for full list):
-- **App**: `NEXT_PUBLIC_APP_URL`
-- **Auth**: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
-- **Database**: `DATABASE_URL`
-- **Redis**: `REDIS_URL`
-- **AI Providers**: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`
-- **Figma**: `FIGMA_PERSONAL_ACCESS_TOKEN`
-- **GitHub**: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
-- **Email**: `RESEND_API_KEY`, `SENDGRID_API_KEY`
-- **Analytics**: `POSTHOG_API_KEY`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`, `PLAUSIBLE_DOMAIN`, `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`
-- **Monitoring**: `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`
-
-This repo runs with no keys thanks to a local fallback for codegen. Add provider keys when you’re ready.
+See `.env.example` and `env.example`. Minimal setup to start: none required (uses fallback generator). For DB/Redis and providers, set the corresponding keys.
 
 ## REST API
 
-- `POST /api/generate`
-  - Body: `{ "prompt": string, "temperature"?: number }`
-  - Response: `{ ok: boolean, code?: string, error?: string }`
+- `POST /api/generate` → returns TSX from a prompt
+- `GET /api/health` → simple uptime
+- `GET /api/db` → DB connectivity check
 
-- `GET /api/health`
-  - Response: `{ ok: true, uptime: number }`
+## Rate limiting
 
-- `GET /api/db`
-  - Response: `{ ok: boolean, projects?: number }`
+- Implemented via middleware (`apps/web/middleware.ts`) using `@acme/cache` (Redis).
+- Defaults: 20 req / 10s per IP+path. Configure via environment (add your own logic).
+
+## Security & Compliance
+
+- Headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`
+- Secrets: `.env` files, not committed
+- Error monitoring hooks present (Sentry keys in example)
+- Analytics optional (PostHog/Plausible)
+
+## Performance
+
+- Next.js app router, package transpilation for fast local DX
+- Tailwind purges across app + shared UI
+- Turbo caches builds & outputs
 
 ## Database
 
-- Edit schema: `packages/db/prisma/schema.prisma`
-- Generate client: `pnpm db:generate`
-- Create dev migration: `pnpm db:migrate`
-- Open Prisma Studio: `pnpm db:studio`
+- Schema: `packages/db/prisma/schema.prisma`
+- Migrate (dev): `pnpm db:migrate`
+- Studio: `pnpm db:studio`
+
+## Build & Deploy
+
+- Docker:
+
+```bash
+docker build -t acme-v0x .
+docker run --env-file .env -p 3000:3000 acme-v0x
+```
+
+- Vercel: import the repo, set environment variables, and build. Next.js app is in `apps/web`.
+
+## CI
+
+- GitHub Actions workflow installs deps, typechecks, and builds on PRs/commits to `main`.
 
 ## Scripts
 
 - `pnpm dev` – run all apps in dev (Turbo)
 - `pnpm build` – build all apps/packages
-- `pnpm lint` – run linters
 - `pnpm typecheck` – TypeScript checks
 - `pnpm db:*` – Prisma helpers
 
-## Development workflow
+## Roadmap (selected)
 
-- All code lives in the monorepo. Import shared packages via `@acme/*` aliases.
-- Next.js is configured to transpile workspace packages for smooth dev.
-- Tailwind scans `packages/ui/src` so shared components style correctly.
-- The Studio uses `/api/generate` which calls `@acme/codegen`. If no AI key is configured, a placeholder component is returned.
-
-## Roadmap (high-level)
-
-- Visual renderer to live-preview and mount generated TSX in a sandbox
-- Figma ingestion: parse auto-layout and translate to components
-- Agentic loops: plan → generate → test/eval → refine
-- Project persistence with Postgres; job orchestration with Redis
-- Export to GitHub and open PRs with CI templates
+- Live sandbox preview to mount generated TSX
+- Figma ingestion + layout synthesis
+- Agentic loops with evals and retries
+- Project persistence and long-running jobs
+- GitHub export with CI templates
 - One-click deploys (Vercel/Fly/Render)
-
-## Deployment
-
-- Create your `.env` with production URLs and keys
-- Build: `pnpm build`
-- Run web: `pnpm --filter @acme/web start`
-- Or deploy the Next.js app to your platform of choice (e.g. Vercel)
 
 ## License
 
-MIT — use freely, contributions welcome.
+MIT.
