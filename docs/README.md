@@ -1,10 +1,29 @@
 # Documentation
 
-- See the generated API reference: `docs/API.md`.
-- To regenerate, run:
+- API Index: `docs/API.md`
+- Full API (single file): `docs/API_FULL.md`
+- Per-module pages: `docs/api/<language>/<path>.md`
+- Dependency graph: `docs/DIAGRAMS.md` (Mermaid)
+
+## Generate
 
 ```bash
-python3 scripts/generate_docs.py
+python3 scripts/generate_docs.py --format both --verbose
 ```
 
-This scans the repository for supported languages (JS/TS, Python, Go, Rust, Java) and extracts public APIs using lightweight static analysis. If no source files are present, the API reference will indicate that nothing was found.
+Optional flags:
+- `--include <regex>`: include only matching paths (repeatable)
+- `--exclude <regex>`: exclude matching paths (repeatable)
+- `--languages ts,js,python`: limit languages
+- `--output-dir ./docs`: change output directory
+- `--config ./docsgen.json`: load defaults from JSON file
+
+You can also create `docsgen.json` at repo root:
+
+```json
+{
+  "include": ["^src/"],
+  "exclude": ["\.test\."],
+  "languages": "ts,js,python"
+}
+```
