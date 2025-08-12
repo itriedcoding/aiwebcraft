@@ -13,7 +13,8 @@ const config: NextConfig = {
     "@acme/ai",
     "@acme/codegen",
     "@acme/agents",
-    "@acme/evals"
+    "@acme/evals",
+    "@acme/db"
   ],
   poweredByHeader: false,
   typescript: {
