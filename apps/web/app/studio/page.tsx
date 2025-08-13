@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { Button } from '@acme/ui';
+import { GeneratedPreview } from '../../components/GeneratedPreview';
 
 export default function StudioPage() {
   const [prompt, setPrompt] = useState('A pricing card with three tiers and a toggle for monthly/annual');
@@ -41,7 +42,7 @@ export default function StudioPage() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-        <div>
+        <div className="flex items-center gap-3">
           <Button onClick={onGenerate} disabled={loading}>
             {loading ? 'Generating…' : 'Generate Component'}
           </Button>
@@ -53,9 +54,14 @@ export default function StudioPage() {
       {code && (
         <section className="mt-8">
           <h2 className="mb-2 text-xl font-semibold">Generated TSX</h2>
-          <pre className="overflow-auto rounded-md border bg-neutral-50 p-4 text-sm dark:bg-neutral-900">
-            <code>{code}</code>
-          </pre>
+          <div className="grid gap-4 md:grid-cols-2">
+            <pre className="overflow-auto rounded-md border bg-neutral-50 p-4 text-sm dark:bg-neutral-900">
+              <code>{code}</code>
+            </pre>
+            <div className="rounded-md border p-2">
+              <GeneratedPreview code={code} />
+            </div>
+          </div>
         </section>
       )}
     </main>

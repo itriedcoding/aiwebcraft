@@ -12,15 +12,10 @@ export default function Page() {
           <Link href="/studio" className="rounded-md bg-black px-5 py-3 text-white dark:bg-white dark:text-black">
             Open Studio
           </Link>
-          <a
-            href="https://github.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-md border px-5 py-3"
-          >
-            Star on GitHub
-          </a>
+          <a href="/api/health" className="rounded-md border px-5 py-3">Health</a>
+          <a href="/api/db" className="rounded-md border px-5 py-3">DB</a>
         </div>
+        <p className="text-sm text-gray-500 dark:text-gray-500">Includes API rate limiting, health checks, and DB probes.</p>
       </section>
     </main>
   );
