@@ -142,4 +142,4 @@ docker run --env-file .env -p 3000:3000 acme-v0x
 
 ## License
 
-(MIT){https://github.com/itriedcoding/aiwebcraft}
+{MIT}(https://github.com/itriedcoding/aiwebcraft)
